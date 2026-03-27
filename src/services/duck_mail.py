@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from html import unescape
 from typing import Any, Dict, List, Optional
 
-from .base import BaseEmailService, EmailServiceError, EmailServiceType, RateLimitedEmailServiceError
+from .base import BaseEmailService, EmailServiceError, EmailServiceType, RateLimitedEmailServiceError, get_email_code_settings
 from ..config.constants import OTP_CODE_PATTERN
 from ..core.http_client import HTTPClient, RequestConfig
 
@@ -258,6 +258,7 @@ class DuckMailService(BaseEmailService):
             logger.warning(f"DuckMail 邮箱缺少访问 token: {email}")
             return None
 
+        poll_interval = get_email_code_settings()["poll_interval"]
         start_time = time.time()
         seen_message_ids = set()
 
@@ -307,7 +308,7 @@ class DuckMailService(BaseEmailService):
             except Exception as e:
                 logger.debug(f"DuckMail 轮询验证码失败: {e}")
 
-            time.sleep(3)
+            time.sleep(poll_interval)
 
         return None
 

@@ -37,7 +37,7 @@ from ..config.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
-OTP_SECONDARY_TIMEOUT_SECONDS = 120
+OTP_SECONDARY_TIMEOUT_SECONDS = 120  # 默认值，运行时由 get_settings().email_code_timeout 覆盖
 PHASE_EMAIL_PREPARE = "email_prepare"
 PHASE_OTP_SECONDARY = "otp_secondary"
 ERROR_EMAIL_PROVIDER_RATE_LIMITED = "EMAIL_PROVIDER_RATE_LIMITED"
@@ -646,7 +646,7 @@ class RegistrationEngine:
 
             email_id = self.email_info.get("service_id") if self.email_info else None
             budget = Budget(
-                timeout_seconds=OTP_SECONDARY_TIMEOUT_SECONDS,
+                timeout_seconds=get_settings().email_code_timeout,
                 started_at=started_at if started_at is not None else time.time(),
             )
             remaining_timeout = budget.remaining_seconds()

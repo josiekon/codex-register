@@ -13,11 +13,21 @@ from typing import Optional, Dict, Any, List
 from enum import Enum
 
 from ..config.constants import EmailServiceType, OTP_CODE_PATTERN, OTP_CODE_SEMANTIC_PATTERN
+from ..config.settings import get_settings
 
 
 logger = logging.getLogger(__name__)
 
 EMAIL_PROVIDER_BACKOFF_BASE_SECONDS = 30
+
+
+def get_email_code_settings() -> dict:
+    """获取验证码等待配置（timeout、poll_interval）"""
+    settings = get_settings()
+    return {
+        "timeout": settings.email_code_timeout,
+        "poll_interval": settings.email_code_poll_interval,
+    }
 EMAIL_PROVIDER_BACKOFF_MAX_SECONDS = 3600
 OTP_TIMEOUT_ERROR_PREFIX = "OTP_TIMEOUT"
 

@@ -10,7 +10,7 @@ import logging
 from typing import Optional, Dict, Any, List
 from urllib.parse import urljoin
 
-from .base import BaseEmailService, EmailServiceError, EmailServiceType, RateLimitedEmailServiceError
+from .base import BaseEmailService, EmailServiceError, EmailServiceType, RateLimitedEmailServiceError, get_email_code_settings
 from ..core.http_client import HTTPClient, RequestConfig
 from ..config.constants import OTP_CODE_PATTERN
 
@@ -303,6 +303,7 @@ class MeoMailEmailService(BaseEmailService):
 
         logger.info(f"正在从自定义域名邮箱 {email} 获取验证码...")
 
+        poll_interval = get_email_code_settings()["poll_interval"]
         start_time = time.time()
         seen_message_ids = set()
 
@@ -313,7 +314,7 @@ class MeoMailEmailService(BaseEmailService):
 
                 messages = response.get("messages", [])
                 if not isinstance(messages, list):
-                    time.sleep(3)
+                    time.sleep(poll_interval)
                     continue
 
                 ordered_messages = self._sort_items_by_message_time(
@@ -370,7 +371,7 @@ class MeoMailEmailService(BaseEmailService):
                 logger.debug(f"检查邮件时出错: {e}")
 
             # 等待一段时间再检查
-            time.sleep(3)
+            time.sleep(poll_interval)
 
         logger.warning(f"等待验证码超时: {email}")
         return None

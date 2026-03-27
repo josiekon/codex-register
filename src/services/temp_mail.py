@@ -15,7 +15,7 @@ from email.policy import default as email_policy
 from html import unescape
 from typing import Optional, Dict, Any, List
 
-from .base import BaseEmailService, EmailServiceError, EmailServiceType, RateLimitedEmailServiceError
+from .base import BaseEmailService, EmailServiceError, EmailServiceType, RateLimitedEmailServiceError, get_email_code_settings
 from ..core.http_client import HTTPClient, RequestConfig
 from ..config.constants import OTP_CODE_PATTERN
 
@@ -307,6 +307,7 @@ class TempMailService(BaseEmailService):
         logger.info(f"正在从 TempMail 邮箱 {email} 获取验证码...")
 
         start_time = time.time()
+        poll_interval = get_email_code_settings()["poll_interval"]
         seen_mail_ids: set = set()
 
         # 优先使用用户级 JWT，回退到 admin API 先注释用户级API
@@ -332,7 +333,7 @@ class TempMailService(BaseEmailService):
                 # /user_api/mails 和 /admin/mails 返回格式相同: {"results": [...], "total": N}
                 mails = response.get("results", [])
                 if not isinstance(mails, list):
-                    time.sleep(3)
+                    time.sleep(poll_interval)
                     continue
 
                 ordered_mails = self._sort_items_by_message_time(
@@ -381,7 +382,7 @@ class TempMailService(BaseEmailService):
             except Exception as e:
                 logger.debug(f"检查 TempMail 邮件时出错: {e}")
 
-            time.sleep(3)
+            time.sleep(poll_interval)
 
         logger.warning(f"等待 TempMail 验证码超时: {email}")
         return None
